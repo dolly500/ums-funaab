@@ -1,0 +1,174 @@
+<%- include('../Includes/begin.ejs') %>
+<section id="content-wrapper">
+    <main role="main" class="pt-1 main">
+        <div class="main-content pl-5 pr-5">
+            <div class="card-body">
+                <div class="container text-center pb-5">
+                    <h2 class="text-dark">
+                        UMS FUNAAB
+                    </h2>
+                    <h3>
+                        EXAMINATIONS AND RECORDS OFFICE
+                    </h3>
+                    <h4>
+                        ACADEMIC AFFAIRS UNIT
+                    </h4>
+                    <h5>
+                        PROVISIONAL STATEMENT OF RESULT
+                    </h5>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <table class="table text-center">
+                            <thead class="thead-none">
+                                <tr class="text-center">
+                                    <th scope="col">Course Code</th>
+                                    <th scope="col">Course Title</th>
+                                    <th scope="col">Unit</th>
+                                    <th scope="col">Score</th>
+                                    <th scope="col">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for(var i=0; i < data.length; i++) { %>
+                                    <tr class="text-center">
+                                        <td><%= data[i].c_id %></td>
+                                        <td>
+                                            <%= data[i].name %>
+                                        </td>
+                                        <td><%= data[i].credits %></td>
+                                        <td><%= data[i].cat_marks+data[i].exam_marks %></td>
+                                        <td>
+                                            <% if (data[i].cat_marks+data[i].exam_marks >= 70) { %>
+                                                A
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 59 && data[i].cat_marks+data[i].exam_marks < 70) { %>
+                                                B
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 49 && data[i].cat_marks+data[i].exam_marks < 60) { %>
+                                                C
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 39 && data[i].cat_marks+data[i].exam_marks < 50) { %>
+                                                D
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks < 40) { %>
+                                                F
+                                            <%} else { %>
+                                                F
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-4">
+                        <h3>
+                            Outstanding Courses
+                        </h3>
+                        <br/>
+                        
+                        <table class="table text-center">
+                            <thead class="thead-none">
+                                <tr class="text-center">
+                                    <th scope="col">Course Code</th>
+                                    <th scope="col">Course Title</th>
+                                    <th scope="col">Unit</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for(var i=0; i < data.length; i++) { %>
+                                    <tr class="text-center">
+                                        <td><%= data[i].c_id %></td>
+                                        <td>
+                                            <%= data[i].name %>
+                                        </td>
+                                        <td><%= data[i].credits %></td>
+                                        <td>
+                                            <% if (data[i].cat_marks+data[i].exam_marks >= 70) { %>
+                                                A
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 59 && data[i].cat_marks+data[i].exam_marks < 70) { %>
+                                                B
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 49 && data[i].cat_marks+data[i].exam_marks < 60) { %>
+                                                C
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks > 39 && data[i].cat_marks+data[i].exam_marks < 50) { %>
+                                                D
+                                            <%} else if(data[i].cat_marks+data[i].exam_marks < 40) { %>
+                                                F
+                                            <%} else { %>
+                                                F
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <table class="table text-center">
+                            <thead class="thead-light">
+                                <tr class="text-center">
+                                    <th scope="col">Marks %</th>
+                                    <th scope="col">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-center">
+                                    <td>700-100</td>
+                                    <td>A</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>60-69</td>
+                                    <td>B</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>50-59</td>
+                                    <td>C</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>40-49</td>
+                                    <td>D</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <td>0-39</td>
+                                    <td>F</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-6">
+                        <table class="table text-center">
+                            <thead class="thead-dark">
+                                <tr class="text-center">
+                                    <th scope="col">     </th>
+                                    <th scope="col">TCP</th>
+                                    <th scope="col">TNU</th>
+                                    <th scope="col">GPA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-center">
+                                    <th>Current</th>
+                                    <td>80</td>
+                                    <td>20</td>
+                                    <td>30</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <th>Previous</th>
+                                    <td>80</td>
+                                    <td>20</td>
+                                    <td>30</td>
+                                </tr>
+                                <tr class="text-center">
+                                    <th>Cummulative</th>
+                                    <td>80</td>
+                                    <td>20</td>
+                                    <td>30</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</section>
