@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs');
 const pdf = require('html-pdf');
 
 const mailgun = require('mailgun-js');

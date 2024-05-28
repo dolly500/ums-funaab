@@ -4,10 +4,12 @@ module.exports = class Mysql {
   static connect() {
     // establish connection
     const db = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
+      host: "localhost",
+      user: "root",
+      password: "",
+      port: 3306,
       database: 'cumsdbms',
+      connectTimeout: 10000,
     });
     // connect to database
     db.connect((err) => {

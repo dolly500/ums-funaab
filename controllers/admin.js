@@ -7,11 +7,13 @@ const DOMAIN = process.env.DOMAIN_NAME;
 const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
 
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  dateStrings: 'date',
-  database: 'cumsdbms',
+      host: "localhost",
+      user: "root",
+      password: "",
+      port: 3306,
+      database: 'cumsdbms',
+      connectTimeout: 10000,
+      dateStrings: 'date',
 });
 
 // Students limit per section
