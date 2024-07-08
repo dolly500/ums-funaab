@@ -342,7 +342,8 @@ exports.postAddStaff = async (req, res, next) => {
     }
 
     const password = dob.toString().split('-').join('');
-    const hashedPassword = await bcrypt.hash(password, 8);
+    // Skipping password hashing
+    // const hashedPassword = await bcrypt.hash(password, 8);
 
     const sql2 = 'INSERT INTO staff SET ?';
     await queryParamPromise(sql2, {
@@ -354,12 +355,14 @@ exports.postAddStaff = async (req, res, next) => {
       st_address: address + '-' + city + '-' + postalCode,
       contact: contact,
       dept_id: department,
-      password: hashedPassword,
+      // Storing plain text password (not recommended for production)
+      password: password,
     });
     req.flash('success_msg', 'Staff added successfully');
     res.redirect('/admin/getAllStaffs');
   }
 };
+
 // 2.2 Get staffs on query
 exports.getRelevantStaff = async (req, res, next) => {
   const sql = 'SELECT dept_id from department';
@@ -520,9 +523,10 @@ exports.postAddStudent = async (req, res, next) => {
     contact,
   } = req.body;
   const password = dob.toString().split('-').join('');
-  const hashedPassword = await hashing(password);
-  const sql1 =
-    'select count(*) as `count`, section from student where section = (select max(section) from student where dept_id = ?) AND dept_id = ?';
+  // Skipping password hashing
+  // const hashedPassword = await hashing(password);
+  
+  const sql1 = 'select count(*) as `count`, section from student where section = (select max(section) from student where dept_id = ?) AND dept_id = ?';
   const results = await queryParamPromise(sql1, [department, department]);
   let section = 1;
   if (results[0].count !== 0) {
@@ -532,6 +536,7 @@ exports.postAddStudent = async (req, res, next) => {
       section = results[0].section;
     }
   }
+  
   const sql2 = 'INSERT INTO STUDENT SET ?';
   await queryParamPromise(sql2, {
     s_id: uuidv4(),
@@ -539,15 +544,17 @@ exports.postAddStudent = async (req, res, next) => {
     gender: gender,
     dob: dob,
     email: email,
-    s_address: address + '-' + city + '-' + postalCode,
+    s_address: `${address}-${city}-${postalCode}`,
     contact: contact,
-    password: hashedPassword,
+    // Storing plain text password (not recommended for production)
+    password: password,
     section: section,
     dept_id: department,
   });
   req.flash('success_msg', 'Student added successfully');
   res.redirect('/admin/getAllStudents');
 };
+
 
 // 3.2 Get students on query
 exports.getRelevantStudent = async (req, res, next) => {

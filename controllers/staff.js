@@ -1,7 +1,7 @@
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
-
+const bcrypt = require('bcryptjs');
+const uuidv4 = require('uuid').v4;
 const mailgun = require('mailgun-js');
 const DOMAIN = process.env.DOMAIN_NAME;
 const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
@@ -35,6 +35,40 @@ const queryParamPromise = (sql, queryParam) => {
   });
 };
 
+// STAFF REGISTER ==> To be commented
+exports.getRegister = (req, res, next) => {
+  res.render('Staff/register');
+};
+
+
+exports.postRegister = async (req, res, next) => {
+  const { name, email, password, confirmPassword } = req.body;
+  let errors = [];
+  if (password !== confirmPassword) {
+    errors.push({ msg: 'Passwords do not match' });
+    return res.render('Staff/register', { errors });
+  } else {
+    const sql1 = 'select count(*) as `count` from staffs where email = ?';
+    const count = (await queryParamPromise(sql1, [email]))[0].count;
+    if (count !== 0) {
+      errors.push({ msg: 'That email is already in use' });
+      return res.render('Staff/register', { errors });
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 8);
+      const sql2 = 'INSERT INTO staffs SET ?';
+      await queryParamPromise(sql2, {
+        staff_id: uuidv4(),
+        name: name,
+        email: email,
+        password: hashedPassword,
+      });
+      req.flash('success_msg', 'You are now registered and can log in');
+      return res.redirect('/staff/login');
+    }
+  }
+}
+
+
 // LOGIN
 exports.getLogin = (req, res, next) => {
   res.render('Staff/login');
@@ -43,7 +77,7 @@ exports.getLogin = (req, res, next) => {
 exports.postLogin = async (req, res, next) => {
   const { email, password } = req.body;
   let errors = [];
-  const sql1 = 'SELECT * FROM staff WHERE email = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE email = ?';
   const users = await queryParamPromise(sql1, [email]);
   if (
     users.length === 0 ||
@@ -52,7 +86,7 @@ exports.postLogin = async (req, res, next) => {
     errors.push({ msg: 'Email or Password is Incorrect' });
     res.status(401).render('Staff/login', { errors });
   } else {
-    const token = jwt.sign({ id: users[0].st_id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: users[0].staff_id }, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
     res.cookie('jwt', token, {
@@ -64,14 +98,14 @@ exports.postLogin = async (req, res, next) => {
 };
 
 exports.getDashboard = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
   res.render('Staff/dashboard', { user: data[0], page_name: 'overview' });
 };
 
 exports.getProfile = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
   const userDOB = data[0].dob;
@@ -85,7 +119,7 @@ exports.getProfile = async (req, res, next) => {
   res.render('Staff/profile', {
     user: data[0],
     userDOB,
-    deptData,
+    deptData,    
     classData,
     page_name: 'profile',
   });
@@ -93,7 +127,7 @@ exports.getProfile = async (req, res, next) => {
 
 exports.getTimeTable = async (req, res, next) => {
   const staffData = (
-    await queryParamPromise('SELECT * FROM staff WHERE st_id = ?', [req.user])
+    await queryParamPromise('SELECT * FROM staffs WHERE staff_id = ?', [req.user])
   )[0];
   const timeTableData = await queryParamPromise(
     'select * from time_table where st_id = ? order by day, start_time',
@@ -114,13 +148,13 @@ exports.getTimeTable = async (req, res, next) => {
 };
 
 exports.getAttendance = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
 
   const sql3 =
     'SELECT cl.class_id, cl.section, cl.semester, cl.c_id, co.name FROM class AS cl, course AS co WHERE st_id = ? AND co.c_id = cl.c_id ORDER BY cl.semester;';
-  const classData = await queryParamPromise(sql3, [data[0].st_id]);
+  const classData = await queryParamPromise(sql3, [data[0].staff_id]);
 
   res.render('Staff/selectClassAttendance', {
     user: data[0],
@@ -198,13 +232,13 @@ exports.postAttendance = async (req, res, next) => {
 };
 
 exports.getStudentReport = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
 
   const sql3 =
     'SELECT cl.class_id, cl.section, cl.semester, cl.c_id, co.name FROM class AS cl, course AS co WHERE st_id = ? AND co.c_id = cl.c_id ORDER BY cl.semester;';
-  const classData = await queryParamPromise(sql3, [data[0].st_id]);
+  const classData = await queryParamPromise(sql3, [data[0].staff_id]);
 
   res.render('Staff/selectClass', {
     user: data[0],
@@ -215,13 +249,13 @@ exports.getStudentReport = async (req, res, next) => {
 };
 
 exports.selectClassReport = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
 
   const sql3 =
     'SELECT cl.class_id, cl.section, cl.semester, cl.c_id, co.name FROM class AS cl, course AS co WHERE st_id = ? AND co.c_id = cl.c_id ORDER BY cl.semester;';
-  const classData = await queryParamPromise(sql3, [data[0].st_id]);
+  const classData = await queryParamPromise(sql3, [data[0].staff_id]);
 
   res.render('Staff/selectClassReport', {
     user: data[0],
@@ -236,7 +270,7 @@ exports.getClassReport = async (req, res, next) => {
   const staffId = req.user;
   const section = req.query.section;
   const classData = await queryParamPromise(
-    'SELECT * FROM class WHERE c_id = ? AND st_id = ? AND section = ?',
+    'SELECT * FROM class WHERE c_id = ? AND staff_id = ? AND section = ?',
     [courseId, staffId, section]
   );
   const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
@@ -252,7 +286,7 @@ exports.getClassReport = async (req, res, next) => {
 // Student Results
 
 exports.selectStudentResult = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
 
@@ -277,7 +311,7 @@ exports.getStudentResult = async (req, res, next) => {
     'SELECT * FROM marks WHERE c_id = ?',
     [courseId,]
   );
-  const sql1 = 'SELECT * FROM staff WHERE st_id = ?';
+  const sql1 = 'SELECT * FROM staffs WHERE staff_id = ?';
   const user = req.user;
   const data = await queryParamPromise(sql1, [user]);
   // console.log(resultData)
@@ -317,7 +351,7 @@ exports.forgotPassword = async (req, res, next) => {
   }
 
   const token = jwt.sign(
-    { _id: results[0].st_id },
+    { _id: results[0].staff_id },
     process.env.RESET_PASSWORD_KEY,
     { expiresIn: '20m' }
   );

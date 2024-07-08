@@ -1,18 +1,20 @@
 const mysql = require('mysql');
 const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const pdf = require('html-pdf');
-
+const uuidv4 = require('uuid').v4;
 const mailgun = require('mailgun-js');
 const DOMAIN = process.env.DOMAIN_NAME;
 const mg = mailgun({ apiKey: process.env.MAILGUN_API_KEY, domain: DOMAIN });
 
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  host: "localhost",
+  user: "root",
+  password: "",
+  port: 3306,
+  database: "cumsdbms",
+  connectTimeout: 10000,
   dateStrings: 'date',
-  database: 'cumsdbms',
 });
 
 // Database query promises
@@ -34,6 +36,39 @@ const queryParamPromise = (sql, queryParam) => {
   });
 };
 
+// Student REGISTER ==> To be commented
+exports.getRegister = (req, res, next) => {
+  res.render('Student/register');
+};
+
+
+exports.postRegister = async (req, res, next) => {
+  const { name, email, password, confirmPassword } = req.body;
+  let errors = [];
+  if (password !== confirmPassword) {
+    errors.push({ msg: 'Passwords do not match' });
+    return res.render('Student/register', { errors });
+  } else {
+    const sql1 = 'select count(*) as `count` from students where email = ?';
+    const count = (await queryParamPromise(sql1, [email]))[0].count;
+    if (count !== 0) {
+      errors.push({ msg: 'That email is already in use' });
+      return res.render('Student/register', { errors });
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 8);
+      const sql2 = 'INSERT INTO students SET ?';
+      await queryParamPromise(sql2, {
+        student_id: uuidv4(),
+        name: name,
+        email: email,
+        password: hashedPassword,
+      });
+      req.flash('success_msg', 'You are now registered and can log in');
+      return res.redirect('/Student/login');
+    }
+  }
+}
+
 exports.getLogin = (req, res, next) => {
   res.render('Student/login');
 };
@@ -48,7 +83,7 @@ exports.postLogin = (req, res, next) => {
       return res.status(400).render('Student/login', { errors });
     }
 
-    let sql5 = 'SELECT * FROM student WHERE email = ?';
+    let sql5 = 'SELECT * FROM students WHERE email = ?';
     db.query(sql5, [email], async (err, results) => {
       if (
         results.length === 0 ||
@@ -58,15 +93,15 @@ exports.postLogin = (req, res, next) => {
         res.status(401).render('Student/login', { errors });
       } else {
         const user = results[0];
-        const token = jwt.sign({ id: user.s_id }, process.env.JWT_SECRET, {
-          expiresIn: process.env.JWT_EXPIRE,
+        const token = jwt.sign({ id: user.student_id }, process.env.JWT_SECRET, {
+          expiresIn: "30d",
         });
 
         res.cookie('jwt', token, {
           httpOnly: true,
           maxAge: 24 * 60 * 60 * 1000,
         });
-        res.redirect('/student/dashboard');
+        res.redirect('/Student/dashboard');
       }
     });
   } catch (err) {
@@ -75,7 +110,7 @@ exports.postLogin = (req, res, next) => {
 };
 
 exports.getDashboard = (req, res, next) => {
-  let sql6 = 'SELECT * FROM student WHERE s_id = ?';
+  let sql6 = 'SELECT * FROM students WHERE student_id = ?';
   db.query(sql6, [req.user], (err, result) => {
     if (err) throw err;
     res.render('Student/dashboard', {
@@ -86,7 +121,7 @@ exports.getDashboard = (req, res, next) => {
 };
 
 exports.getProfile = async (req, res, next) => {
-  const sql = 'SELECT * FROM student WHERE s_id = ?';
+  const sql = 'SELECT * FROM students WHERE student_id = ?';
   const sql2 =
     'SELECT d_name FROM department WHERE dept_id = (SELECT dept_id FROM student WHERE s_id = ?)';
   const sql3 = 'SELECT * FROM program WHERE id = ?';
@@ -106,7 +141,7 @@ exports.getProfile = async (req, res, next) => {
   return res.render('Student/profile', {
     data: profileData,
     page_name: 'profile',
-    dname: deptName[0].d_name,
+    dname: deptName[0]?.d_name,
     dob,
     jds,
     programData,
@@ -114,7 +149,7 @@ exports.getProfile = async (req, res, next) => {
 };
 
 exports.getResults = async (req, res, next) => {
-  const sql = 'SELECT * FROM student WHERE s_id = ?';
+  const sql = 'SELECT * FROM students WHERE student_id = ?';
   const sql2 =
     'SELECT d_name FROM department WHERE dept_id = (SELECT dept_id FROM student WHERE s_id = ?)';
   const sql3 = 'SELECT * FROM program WHERE id = (SELECT program_id FROM student WHERE s_id = ?)';
@@ -127,7 +162,7 @@ exports.getResults = async (req, res, next) => {
   return res.render('Student/results', {
     data: profileData,
     page_name: 'results',
-    dname: deptName[0].d_name,
+    dname: deptName[0]?.d_name,
     programData: programData[0],
   });
 };
@@ -246,11 +281,11 @@ exports.postSelectAttendance = async (req, res, next) => {
 };
 
 exports.getTimeTable = async (req, res, next) => {
-  const sql1 = 'SELECT * FROM student WHERE s_id = ?';
+  const sql1 = 'SELECT * FROM students WHERE student_id = ?';
   const studentData = (await queryParamPromise(sql1, [req.user]))[0];
   const days = (
     await queryParamPromise(
-      'select datediff(current_date(), ?) as diff',
+      'SELECT DATEDIFF(CURRENT_DATE(), ?) AS diff',
       studentData.joining_date
     )
   )[0].diff;

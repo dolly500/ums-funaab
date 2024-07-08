@@ -5,7 +5,30 @@ CREATE TABLE IF NOT EXISTS `admin`(
     `name` VARCHAR(255) NOT NULL,
     `email` VARCHAR(255) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
-    PRIMARY KEY(`admin_id`)
+    PRIMARY KEY(`admin_id`)	
+);
+
+CREATE TABLE IF NOT EXISTS `staffs`(
+	`staff_id` VARCHAR(36) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `password` VARCHAR(255) NOT NULL,
+    PRIMARY KEY(`staff_id`)	
+);
+
+CREATE TABLE IF NOT EXISTS `students`(
+	`student_id` VARCHAR(36) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `password` VARCHAR(255) NOT NULL,
+    PRIMARY KEY(`student_id`)	
+);
+
+CREATE TABLE IF NOT EXISTS `program`(
+	`id` VARCHAR(36) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `description` VARCHAR(255) NOT NULL,
+    PRIMARY KEY(`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `course` (
@@ -30,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `student` (
 	`section` INT NOT NULL,
 	`joining_date` DATE DEFAULT(CURRENT_DATE),
 	`dept_id` VARCHAR(255),	
+	`program_id` VARCHAR(36),
 	PRIMARY KEY (`s_id`)
 );
 

@@ -11,7 +11,7 @@ const db = mysql.createConnection({
 
 const selectID = (id) => {
   return new Promise((resolve, reject) => {
-    const sql1 = 'SELECT s_name FROM student WHERE s_id = ?';
+    const sql1 = 'SELECT name FROM students WHERE student_id = ?';
     db.query(sql1, [id], (err, results) => {
       if (err) return reject(err);
       return resolve(results);

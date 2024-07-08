@@ -12,6 +12,10 @@ router.get('/dashboard', requireAuth, controller.getDashboard);
 router.get('/profile', requireAuth, controller.getProfile);
 router.get('/logout', requireAuth, controller.getLogout);
 
+// 1.2 Register
+router.get('/register', forwardAuth, controller.getRegister);
+router.post('/register', controller.postRegister);
+
 router.get('/student-attendance', requireAuth, controller.getAttendance);
 // router.get('/student-attendance/class/:id', requireAuth, controller.markAttendance);
 
