@@ -9,6 +9,11 @@ const db = mysql.createConnection({
   database: 'cumsdbms',
 });
 
+// const db = mysql.createConnection({
+//   ..host: ''
+//   .. 
+// })
+
 const selectID = (id) => {
   return new Promise((resolve, reject) => {
     const sql1 = 'SELECT name FROM staffs WHERE staff_id = ?';
